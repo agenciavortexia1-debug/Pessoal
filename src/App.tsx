@@ -48,16 +48,29 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: any) => (
     )}
   >
     <Icon size={20} />
-    <span className="font-medium">{label}</span>
+    <span className="font-medium hidden lg:block">{label}</span>
+  </button>
+);
+
+const MobileNavItem = ({ icon: Icon, label, active, onClick }: any) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "flex flex-col items-center justify-center flex-1 gap-1 py-2 transition-all duration-200",
+      active ? "text-black" : "text-zinc-400"
+    )}
+  >
+    <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+    <span className="text-[10px] font-bold uppercase tracking-tighter">{label}</span>
   </button>
 );
 
 const Card = ({ children, title, subtitle, className }: any) => (
-  <div className={cn("bg-white border border-zinc-100 rounded-2xl p-6 shadow-sm", className)}>
+  <div className={cn("bg-white border border-zinc-100 rounded-2xl p-4 md:p-6 shadow-sm", className)}>
     {(title || subtitle) && (
-      <div className="mb-6">
-        {title && <h3 className="text-lg font-semibold text-zinc-900">{title}</h3>}
-        {subtitle && <p className="text-sm text-zinc-500">{subtitle}</p>}
+      <div className="mb-4 md:mb-6">
+        {title && <h3 className="text-base md:text-lg font-semibold text-zinc-900">{title}</h3>}
+        {subtitle && <p className="text-xs md:text-sm text-zinc-500">{subtitle}</p>}
       </div>
     )}
     {children}
@@ -119,14 +132,14 @@ export default function App() {
   };
 
   return (
-    <div className="flex min-h-screen bg-zinc-50 font-sans text-zinc-900">
-      {/* Sidebar */}
-      <aside className="w-64 border-r border-zinc-200 bg-white p-6 flex flex-col gap-8 fixed h-full">
+    <div className="flex min-h-screen bg-zinc-50 font-sans text-zinc-900 pb-20 md:pb-0">
+      {/* Sidebar - Desktop */}
+      <aside className="hidden md:flex w-20 lg:w-64 border-r border-zinc-200 bg-white p-4 lg:p-6 flex-col gap-8 fixed h-full z-20">
         <div className="flex items-center gap-3 px-2">
-          <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center shrink-0">
             <Zap className="text-white" size={18} />
           </div>
-          <h1 className="font-bold text-lg tracking-tight">Life Intel</h1>
+          <h1 className="font-bold text-lg tracking-tight hidden lg:block">Life Intel</h1>
         </div>
 
         <nav className="flex flex-col gap-2">
@@ -138,8 +151,8 @@ export default function App() {
           <SidebarItem icon={Inbox} label="Inbox" active={activeTab === 'inbox'} onClick={() => setActiveTab('inbox')} />
         </nav>
 
-        <div className="mt-auto p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-          <p className="text-xs text-zinc-400 uppercase font-bold tracking-widest mb-2">Status do Sistema</p>
+        <div className="mt-auto p-4 bg-zinc-50 rounded-2xl border border-zinc-100 hidden lg:block">
+          <p className="text-xs text-zinc-400 uppercase font-bold tracking-widest mb-2">Status</p>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
             <span className="text-sm font-medium text-zinc-600">Sincronizado</span>
@@ -147,8 +160,30 @@ export default function App() {
         </div>
       </aside>
 
+      {/* Bottom Nav - Mobile */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-zinc-200 px-2 py-1 flex justify-around items-center z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <MobileNavItem icon={LayoutDashboard} label="Home" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
+        <MobileNavItem icon={Activity} label="Corpo" active={activeTab === 'body'} onClick={() => setActiveTab('body')} />
+        <MobileNavItem icon={Brain} label="Mente" active={activeTab === 'mind'} onClick={() => setActiveTab('mind')} />
+        <MobileNavItem icon={Wallet} label="Money" active={activeTab === 'finance'} onClick={() => setActiveTab('finance')} />
+        <MobileNavItem icon={Trophy} label="Foco" active={activeTab === 'discipline'} onClick={() => setActiveTab('discipline')} />
+        <MobileNavItem icon={Inbox} label="Inbox" active={activeTab === 'inbox'} onClick={() => setActiveTab('inbox')} />
+      </nav>
+
       {/* Main Content */}
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 md:ml-20 lg:ml-64 p-4 md:p-8">
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+              <Zap className="text-white" size={16} />
+            </div>
+            <h1 className="font-bold text-lg tracking-tight">Life Intel</h1>
+          </div>
+          <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+          </div>
+        </div>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -214,41 +249,41 @@ function DashboardView({ data }: { data: DashboardData | null }) {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <header className="flex items-center justify-between">
+    <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-zinc-500">Visão geral da sua inteligência de vida.</p>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h2>
+          <p className="text-sm text-zinc-500">Visão geral da sua inteligência de vida.</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Score Geral</p>
-            <p className="text-3xl font-black text-black">{overallScore}</p>
+        <div className="flex items-center justify-between md:justify-end gap-4 bg-white p-3 md:p-0 rounded-2xl border border-zinc-100 md:border-none">
+          <div className="text-left md:text-right">
+            <p className="text-[10px] md:text-xs font-bold text-zinc-400 uppercase tracking-widest">Score Geral</p>
+            <p className="text-2xl md:text-3xl font-black text-black">{overallScore}</p>
           </div>
-          <div className="w-12 h-12 rounded-full border-4 border-zinc-100 flex items-center justify-center">
-            <div className="w-8 h-8 rounded-full bg-black" />
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-4 border-zinc-100 flex items-center justify-center">
+            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-black" />
           </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="flex flex-col justify-between h-32">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+        <Card className="flex flex-col justify-between h-28 md:h-32 p-4 md:p-6">
           <ScoreWidget label="Corpo" score={bodyScore} color="text-emerald-600" icon={Activity} />
         </Card>
-        <Card className="flex flex-col justify-between h-32">
+        <Card className="flex flex-col justify-between h-28 md:h-32 p-4 md:p-6">
           <ScoreWidget label="Mente" score={mindScore} color="text-indigo-600" icon={Brain} />
         </Card>
-        <Card className="flex flex-col justify-between h-32">
-          <ScoreWidget label="Finanças" score={financeScore} color="text-amber-600" icon={Wallet} />
+        <Card className="flex flex-col justify-between h-28 md:h-32 p-4 md:p-6">
+          <ScoreWidget label="Money" score={financeScore} color="text-amber-600" icon={Wallet} />
         </Card>
-        <Card className="flex flex-col justify-between h-32">
-          <ScoreWidget label="Disciplina" score={disciplineScore} color="text-rose-600" icon={Trophy} />
+        <Card className="flex flex-col justify-between h-28 md:h-32 p-4 md:p-6">
+          <ScoreWidget label="Foco" score={disciplineScore} color="text-rose-600" icon={Trophy} />
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card title="Correlações Críticas" subtitle="Padrões detectados pelo motor de inteligência" className="lg:col-span-2">
-          <div className="h-[300px] w-full mt-4">
+        <Card title="Correlações Críticas" subtitle="Padrões detectados" className="lg:col-span-2 p-4 md:p-6">
+          <div className="h-[200px] md:h-[300px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={[...data.body].reverse()}>
                 <defs>
@@ -452,44 +487,44 @@ function MindView({ onUpdate }: { onUpdate: () => void }) {
   return (
     <div className="max-w-2xl mx-auto">
       <Card title="Estado Mental" subtitle="Esvazie sua mente e registre seu estado interno.">
-        <form onSubmit={handleSubmit} className="space-y-8 mt-6">
-          <div className="grid grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8 mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-3">
               <p className="text-sm font-bold text-zinc-700 uppercase tracking-wider">Humor</p>
-              <div className="flex gap-2">
+              <div className="flex gap-1 md:gap-2">
                 {[1, 2, 3, 4, 5].map(v => (
                   <button key={v} type="button" onClick={() => setFormData({...formData, mood: v})}
-                    className={cn("flex-1 h-10 rounded-lg border", formData.mood === v ? "bg-black text-white" : "bg-white")}>{v}</button>
+                    className={cn("flex-1 h-12 md:h-10 rounded-xl border font-bold", formData.mood === v ? "bg-black text-white" : "bg-white")}>{v}</button>
                 ))}
               </div>
             </div>
             <div className="space-y-3">
               <p className="text-sm font-bold text-zinc-700 uppercase tracking-wider">Foco</p>
-              <div className="flex gap-2">
+              <div className="flex gap-1 md:gap-2">
                 {[1, 2, 3, 4, 5].map(v => (
                   <button key={v} type="button" onClick={() => setFormData({...formData, focus: v})}
-                    className={cn("flex-1 h-10 rounded-lg border", formData.focus === v ? "bg-black text-white" : "bg-white")}>{v}</button>
+                    className={cn("flex-1 h-12 md:h-10 rounded-xl border font-bold", formData.focus === v ? "bg-black text-white" : "bg-white")}>{v}</button>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-3">
               <p className="text-sm font-bold text-zinc-700 uppercase tracking-wider">Ansiedade</p>
-              <div className="flex gap-2">
+              <div className="flex gap-1 md:gap-2">
                 {[1, 2, 3, 4, 5].map(v => (
                   <button key={v} type="button" onClick={() => setFormData({...formData, anxiety: v})}
-                    className={cn("flex-1 h-10 rounded-lg border", formData.anxiety === v ? "bg-rose-500 text-white border-rose-500" : "bg-white")}>{v}</button>
+                    className={cn("flex-1 h-12 md:h-10 rounded-xl border font-bold", formData.anxiety === v ? "bg-rose-500 text-white border-rose-500" : "bg-white")}>{v}</button>
                 ))}
               </div>
             </div>
             <div className="space-y-3">
               <p className="text-sm font-bold text-zinc-700 uppercase tracking-wider">Estresse</p>
-              <div className="flex gap-2">
+              <div className="flex gap-1 md:gap-2">
                 {[1, 2, 3, 4, 5].map(v => (
                   <button key={v} type="button" onClick={() => setFormData({...formData, stress: v})}
-                    className={cn("flex-1 h-10 rounded-lg border", formData.stress === v ? "bg-rose-500 text-white border-rose-500" : "bg-white")}>{v}</button>
+                    className={cn("flex-1 h-12 md:h-10 rounded-xl border font-bold", formData.stress === v ? "bg-rose-500 text-white border-rose-500" : "bg-white")}>{v}</button>
                 ))}
               </div>
             </div>
@@ -538,13 +573,13 @@ function FinanceView({ onUpdate }: { onUpdate: () => void }) {
     <div className="max-w-2xl mx-auto">
       <Card title="Saúde Financeira" subtitle="Controle seus números para reduzir a pressão mental.">
         <form onSubmit={handleSubmit} className="space-y-6 mt-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-700">Receitas do Mês</label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-3.5 text-zinc-400" size={16} />
                 <input type="number" value={formData.income} onChange={e => setFormData({...formData, income: parseFloat(e.target.value)})}
-                  className="w-full pl-10 p-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none" />
+                  className="w-full pl-10 p-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-black" />
               </div>
             </div>
             <div className="space-y-2">
@@ -552,21 +587,21 @@ function FinanceView({ onUpdate }: { onUpdate: () => void }) {
               <div className="relative">
                 <DollarSign className="absolute left-3 top-3.5 text-zinc-400" size={16} />
                 <input type="number" value={formData.expenses} onChange={e => setFormData({...formData, expenses: parseFloat(e.target.value)})}
-                  className="w-full pl-10 p-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none" />
+                  className="w-full pl-10 p-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-black" />
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-700">Total de Dívidas</label>
               <input type="number" value={formData.debts} onChange={e => setFormData({...formData, debts: parseFloat(e.target.value)})}
-                className="w-full p-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none" />
+                className="w-full p-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-black" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-700">Parcelamentos Ativos</label>
               <input type="number" value={formData.installments} onChange={e => setFormData({...formData, installments: parseFloat(e.target.value)})}
-                className="w-full p-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none" />
+                className="w-full p-3 bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-black" />
             </div>
           </div>
 
@@ -633,24 +668,26 @@ function DisciplineView({ onUpdate }: { onUpdate: () => void }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div className="space-y-8">
-        <Card title="Projetos Ativos" subtitle="O que você está construindo?">
-          <form onSubmit={handleAddProject} className="flex gap-2 mb-6">
+    <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+      <div className="space-y-6 md:space-y-8">
+        <Card title="Projetos Ativos" subtitle="O que você está construindo?" className="p-4 md:p-6">
+          <form onSubmit={handleAddProject} className="flex flex-col sm:flex-row gap-2 mb-6">
             <input 
               placeholder="Nome do projeto" 
               value={newProject.name}
               onChange={e => setNewProject({...newProject, name: e.target.value})}
-              className="flex-1 p-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm outline-none"
+              className="flex-1 p-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none"
             />
-            <input 
-              type="number" 
-              placeholder="Meta (h)" 
-              value={newProject.goal}
-              onChange={e => setNewProject({...newProject, goal: parseFloat(e.target.value)})}
-              className="w-20 p-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm outline-none"
-            />
-            <button type="submit" className="p-2 bg-black text-white rounded-lg"><Plus size={18}/></button>
+            <div className="flex gap-2">
+              <input 
+                type="number" 
+                placeholder="Meta (h)" 
+                value={newProject.goal}
+                onChange={e => setNewProject({...newProject, goal: parseFloat(e.target.value)})}
+                className="flex-1 sm:w-20 p-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none"
+              />
+              <button type="submit" className="p-3 bg-black text-white rounded-xl"><Plus size={20}/></button>
+            </div>
           </form>
 
           <div className="space-y-3">
