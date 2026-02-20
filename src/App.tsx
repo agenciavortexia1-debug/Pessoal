@@ -102,14 +102,25 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const res = await fetch('/api/dashboard');
+      if (!res.ok) {
+        throw new Error(`Erro do servidor: ${res.status}`);
+      }
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("O servidor não retornou JSON. Verifique se o backend está rodando corretamente.");
+      }
       const json = await res.json();
       setData(json);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      setError(e.message || "Erro ao carregar dados");
     } finally {
       setLoading(false);
     }
@@ -120,8 +131,31 @@ export default function App() {
   }, []);
 
   const renderContent = () => {
+    if (error) {
+      return (
+        <div className="flex flex-col items-center justify-center h-96 gap-4 text-center p-6">
+          <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center text-rose-500">
+            <AlertCircle size={32} />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-zinc-900">Falha na Conexão</h3>
+            <p className="text-sm text-zinc-500 max-w-xs mx-auto mt-1">{error}</p>
+          </div>
+          <button 
+            onClick={fetchData}
+            className="px-6 py-2 bg-black text-white rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-transform"
+          >
+            Tentar Novamente
+          </button>
+          <p className="text-[10px] text-zinc-400 mt-4 uppercase tracking-widest">
+            Nota: Se você estiver usando Vercel, o banco de dados SQLite local não é suportado.
+          </p>
+        </div>
+      );
+    }
+
     switch (activeTab) {
-      case 'dashboard': return <DashboardView data={data} />;
+      case 'dashboard': return <DashboardView data={data} onRefresh={fetchData} />;
       case 'body': return <BodyView onUpdate={fetchData} />;
       case 'mind': return <MindView onUpdate={fetchData} />;
       case 'finance': return <FinanceView onUpdate={fetchData} />;
@@ -202,8 +236,15 @@ export default function App() {
 
 // --- Views ---
 
-function DashboardView({ data }: { data: DashboardData | null }) {
-  if (!data) return <div className="flex items-center justify-center h-96">Carregando inteligência...</div>;
+function DashboardView({ data, onRefresh }: { data: DashboardData | null, onRefresh: () => void }) {
+  if (!data) return (
+    <div className="flex flex-col items-center justify-center h-96 gap-4">
+      <div className="w-12 h-12 border-4 border-zinc-200 border-t-black rounded-full animate-spin" />
+      <p className="text-zinc-500 font-medium">Carregando inteligência...</p>
+    </div>
+  );
+
+  const hasData = data.body.length > 0 || data.mind.length > 0 || data.finance.length > 0 || data.discipline.length > 0;
 
   const latestBody = data.body[0];
   const latestMind = data.mind[0];
@@ -216,9 +257,51 @@ function DashboardView({ data }: { data: DashboardData | null }) {
   const financialPressure = latestFinance ? Math.min(100, Math.round((latestFinance.debts / (latestFinance.income || 1)) * 100)) : 0;
   const financeScore = 100 - financialPressure;
 
-  const disciplineScore = data.discipline.length > 0 ? Math.min(100, Math.round(data.discipline[0].total_minutes / 2.4)) : 0; // 240 min = 100%
+  const disciplineScore = data.discipline.length > 0 ? Math.min(100, Math.round(data.discipline[0].total_minutes / 2.4)) : 0;
 
   const overallScore = Math.round((bodyScore + mindScore + financeScore + disciplineScore) / 4);
+
+  if (!hasData) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-8">
+        <header className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h2>
+            <p className="text-sm text-zinc-500">Comece a registrar para ver sua inteligência.</p>
+          </div>
+          <button onClick={onRefresh} className="p-2 hover:bg-zinc-100 rounded-full transition-colors">
+            <Clock size={20} className="text-zinc-400" />
+          </button>
+        </header>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-12">
+          <div className="flex flex-col items-center text-center p-8 bg-white border border-zinc-100 rounded-3xl shadow-sm">
+            <div className="w-16 h-16 bg-zinc-50 rounded-2xl flex items-center justify-center mb-4">
+              <Plus className="text-zinc-400" size={32} />
+            </div>
+            <h3 className="text-lg font-bold">Nenhum dado detectado</h3>
+            <p className="text-sm text-zinc-500 mt-2 max-w-xs">
+              O sistema precisa de pelo menos um registro em qualquer categoria para começar a processar sua inteligência de vida.
+            </p>
+          </div>
+          <div className="space-y-4">
+            <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl">
+              <p className="text-sm font-bold text-indigo-900">Dica de Inteligência</p>
+              <p className="text-xs text-indigo-700 mt-1">
+                Registre seu sono na aba "Corpo" e seu humor na aba "Mente" para ver as primeiras correlações.
+              </p>
+            </div>
+            <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
+              <p className="text-sm font-bold text-emerald-900">Privacidade</p>
+              <p className="text-xs text-emerald-700 mt-1">
+                Seus dados são processados localmente e nunca saem do seu controle.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Correlation Analysis
   const insights = [];
@@ -251,11 +334,25 @@ function DashboardView({ data }: { data: DashboardData | null }) {
   return (
     <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-sm text-zinc-500">Visão geral da sua inteligência de vida.</p>
+        <div className="flex items-center justify-between w-full md:w-auto">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h2>
+            <p className="text-sm text-zinc-500">Visão geral da sua inteligência de vida.</p>
+          </div>
+          <button 
+            onClick={onRefresh}
+            className="md:hidden p-2 hover:bg-zinc-100 rounded-full transition-colors"
+          >
+            <Clock size={20} className="text-zinc-400" />
+          </button>
         </div>
         <div className="flex items-center justify-between md:justify-end gap-4 bg-white p-3 md:p-0 rounded-2xl border border-zinc-100 md:border-none">
+          <button 
+            onClick={onRefresh}
+            className="hidden md:flex p-2 hover:bg-zinc-100 rounded-full transition-colors mr-2"
+          >
+            <Clock size={20} className="text-zinc-400" />
+          </button>
           <div className="text-left md:text-right">
             <p className="text-[10px] md:text-xs font-bold text-zinc-400 uppercase tracking-widest">Score Geral</p>
             <p className="text-2xl md:text-3xl font-black text-black">{overallScore}</p>
